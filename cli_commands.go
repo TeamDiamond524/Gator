@@ -122,6 +122,22 @@ func handleReset(s *state, cmd command) error {
     return nil
 }
 
+func handleListUsers(s *state, cmd command) error {
+    userList, err := s.db.GetUsers(context.Background())
+    if err != nil {
+        return err
+    }
+
+    for _, username := range userList {
+        if s.cfg.Current_user_name == username {
+            fmt.Printf("* %s (current)\n", username)
+        } else {
+            fmt.Printf("* %s\n", username)
+        }
+    }
+
+    return nil
+}
 func isAlpha(s string) bool {
     if s == "" { return false }
     for _, r := range s {
