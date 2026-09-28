@@ -113,6 +113,15 @@ func handlerRegister(s *state, cmd command) error {
     return nil
 }
 
+func handleReset(s *state, cmd command) error {
+    err := s.db.ResetUsers(context.Background())
+    if err != nil {
+        return fmt.Errorf("Error while reseting table \"users\": %v", err)
+    }
+
+    return nil
+}
+
 func isAlpha(s string) bool {
     if s == "" { return false }
     for _, r := range s {

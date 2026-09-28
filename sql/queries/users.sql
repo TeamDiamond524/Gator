@@ -13,3 +13,6 @@ FROM
   users
 WHERE
   name = $1;
+
+-- name: ResetUsers :exec
+DELETE FROM users;

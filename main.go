@@ -31,8 +31,9 @@ func main() {
         CommandList: make(map[string]func(*state, command) error),
     }
 
-    Commands.register("login", handlerLogin)
+    Commands.register("login",    handlerLogin)
     Commands.register("register", handlerRegister)
+    Commands.register("reset",    handleReset)
 
     args := os.Args
     if len(args) < 2 {
