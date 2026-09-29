@@ -138,6 +138,28 @@ func handleListUsers(s *state, cmd command) error {
 
     return nil
 }
+
+func handleAggegator(s *state, cmd command) error {
+    //if len(cmd.args) == 0 {
+        //return fmt.Errorf("The command expects an url")
+    //} else if len(cmd.args) > 1 {
+        //return fmt.Errorf("Too many arguments")
+    //}
+
+    //URL := cmd.args[0]
+    URL := "https://www.wagslane.dev/index.xml"
+    XMLData, err := fetchFeed(context.Background(), URL)
+    if err != nil {
+        return err
+    }
+
+    decodeEscapedHTML(XMLData)
+
+    fmt.Print(XMLData)
+
+    return nil
+}
+
 func isAlpha(s string) bool {
     if s == "" { return false }
     for _, r := range s {

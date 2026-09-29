@@ -35,6 +35,7 @@ func main() {
     Commands.register("register", handlerRegister)
     Commands.register("reset",    handleReset)
     Commands.register("users",    handleListUsers)
+    Commands.register("agg",      handleAggegator)
 
     args := os.Args
     if len(args) < 2 {
