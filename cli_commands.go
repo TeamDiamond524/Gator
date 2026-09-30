@@ -184,6 +184,23 @@ func handleAddFeed(s *state, cmd command) error {
     return nil
 }
 
+func handleFeeds(s *state, cmd command) error {
+    if len(cmd.args) != 0 {
+        return fmt.Errorf("This command doesn't take any arguments")
+    }
+
+    FeedList, err := s.db.GetFeeds(context.Background())
+    if err != nil {
+        return fmt.Errorf("Error while geting data on feeds from database: %v", err)
+    }
+
+    for _, feed := range FeedList {
+        fmt.Printf("%s, %s, %s\n", feed.FeedName, feed.Url, feed.User)
+    }
+
+    return nil
+}
+
 func isAlpha(s string) bool {
     if s == "" { return false }
     for _, r := range s {
