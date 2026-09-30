@@ -140,13 +140,6 @@ func handleListUsers(s *state, cmd command) error {
 }
 
 func handleAggegator(s *state, cmd command) error {
-    //if len(cmd.args) == 0 {
-        //return fmt.Errorf("The command expects an url")
-    //} else if len(cmd.args) > 1 {
-        //return fmt.Errorf("Too many arguments")
-    //}
-
-    //URL := cmd.args[0]
     URL := "https://www.wagslane.dev/index.xml"
     XMLData, err := fetchFeed(context.Background(), URL)
     if err != nil {
@@ -157,6 +150,37 @@ func handleAggegator(s *state, cmd command) error {
 
     fmt.Print(XMLData)
 
+    return nil
+}
+
+func handleAddFeed(s *state, cmd command) error {
+    if len(cmd.args) == 0 || len(cmd.args) != 2 {
+        return fmt.Errorf("addfeed expects name and url argument:  aggfeed <name> <url>")
+    }
+
+    CurrentUser, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
+    if err != nil {
+        return fmt.Errorf("Error while fetching current user data: %v", err)
+    }
+
+    Name := cmd.args[0]
+    URL := cmd.args[1]
+
+    FeedArgs := database.CreateFeedParams {
+        ID: int32(uuid.New().ID()),
+        CreatedAt: time.Now(),
+        UpdatedAt: time.Now(),
+        Name: Name,
+        Url: URL,
+        UserID: CurrentUser.ID,
+    }
+
+    _, err = s.db.CreateFeed(context.Background(), FeedArgs)
+    if err != nil {
+        return fmt.Errorf("Error while creating new feed entry: %v", err)
+    }
+
+    fmt.Printf("Feed %s, %s successfully created.\n", Name, URL)
     return nil
 }
 
