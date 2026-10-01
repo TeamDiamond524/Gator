@@ -31,13 +31,15 @@ func main() {
         CommandList: make(map[string]func(*state, command) error),
     }
 
-    Commands.register("login",    handlerLogin)
-    Commands.register("register", handlerRegister)
-    Commands.register("reset",    handleReset)
-    Commands.register("users",    handleListUsers)
-    Commands.register("agg",      handleAggegator)
-    Commands.register("addfeed",  handleAddFeed)
-    Commands.register("feeds",    handleFeeds)
+    Commands.register("login",     handlerLogin)
+    Commands.register("register",  handlerRegister)
+    Commands.register("reset",     handlerReset)
+    Commands.register("users",     handlerListUsers)
+    Commands.register("agg",       handlerAggegator)
+    Commands.register("addfeed",   handlerAddFeed)
+    Commands.register("feeds",     handlerFeeds)
+    Commands.register("follow",    handlerFollow)
+    Commands.register("following", handlerFollowing)
 
     args := os.Args
     if len(args) < 2 {

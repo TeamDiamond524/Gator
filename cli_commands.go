@@ -16,6 +16,9 @@ import (
 	"github.com/lib/pq/pqerror"
 )
 
+//Error codes from database
+const duplicateErrorCode = "23505"
+
 type state struct {
     cfg *config.Config
     db  *database.Queries
@@ -57,7 +60,7 @@ func (c *commands) register(name string, f func(*state, command) error) {
 }
 
 func handlerLogin(s *state, cmd command) error {
-    if len(cmd.args) == 0 || cmd.args[0] == "" {
+    if len(cmd.args) != 1 {
         return fmt.Errorf("invalid arguments, username is required")
     }
 
@@ -84,7 +87,7 @@ func handlerLogin(s *state, cmd command) error {
 }
 
 func handlerRegister(s *state, cmd command) error {
-    if len(cmd.args) == 0 || cmd.args[0] == "" {
+    if len(cmd.args) != 1 {
         return fmt.Errorf("invalid arguments, username is required")
     }
 
@@ -101,7 +104,6 @@ func handlerRegister(s *state, cmd command) error {
     }
     user, err := s.db.CreateUser(context.Background(), args)
     if err != nil {
-        duplicateErrorCode := "23505"
         if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == pqerror.Code(duplicateErrorCode) {
             return fmt.Errorf("User with %s username already exists. Error: %v", UserName, err)
         }
@@ -113,7 +115,7 @@ func handlerRegister(s *state, cmd command) error {
     return nil
 }
 
-func handleReset(s *state, cmd command) error {
+func handlerReset(s *state, cmd command) error {
     err := s.db.ResetUsers(context.Background())
     if err != nil {
         return fmt.Errorf("Error while reseting table \"users\": %v", err)
@@ -122,7 +124,7 @@ func handleReset(s *state, cmd command) error {
     return nil
 }
 
-func handleListUsers(s *state, cmd command) error {
+func handlerListUsers(s *state, cmd command) error {
     userList, err := s.db.GetUsers(context.Background())
     if err != nil {
         return err
@@ -139,7 +141,7 @@ func handleListUsers(s *state, cmd command) error {
     return nil
 }
 
-func handleAggegator(s *state, cmd command) error {
+func handlerAggegator(s *state, cmd command) error {
     URL := "https://www.wagslane.dev/index.xml"
     XMLData, err := fetchFeed(context.Background(), URL)
     if err != nil {
@@ -153,8 +155,8 @@ func handleAggegator(s *state, cmd command) error {
     return nil
 }
 
-func handleAddFeed(s *state, cmd command) error {
-    if len(cmd.args) == 0 || len(cmd.args) != 2 {
+func handlerAddFeed(s *state, cmd command) error {
+    if len(cmd.args) != 2 {
         return fmt.Errorf("addfeed expects name and url argument:  aggfeed <name> <url>")
     }
 
@@ -177,14 +179,17 @@ func handleAddFeed(s *state, cmd command) error {
 
     _, err = s.db.CreateFeed(context.Background(), FeedArgs)
     if err != nil {
+        if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == pqerror.Code(duplicateErrorCode) {
+            return fmt.Errorf("Feed %s with %s URL already exists. Error: %v", Name, URL, err)
+        }
         return fmt.Errorf("Error while creating new feed entry: %v", err)
     }
 
     fmt.Printf("Feed %s, %s successfully created.\n", Name, URL)
-    return nil
+    return handlerFollow(s, command{name: "follow", args: []string{URL}})
 }
 
-func handleFeeds(s *state, cmd command) error {
+func handlerFeeds(s *state, cmd command) error {
     if len(cmd.args) != 0 {
         return fmt.Errorf("This command doesn't take any arguments")
     }
@@ -196,6 +201,57 @@ func handleFeeds(s *state, cmd command) error {
 
     for _, feed := range FeedList {
         fmt.Printf("%s, %s, %s\n", feed.FeedName, feed.Url, feed.User)
+    }
+
+    return nil
+}
+
+func handlerFollow(s *state, cmd command) error {
+    if len(cmd.args) != 1 {
+        return fmt.Errorf("commands explects url argument: follow <url>")
+    }
+
+    url := cmd.args[0]
+
+    user, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
+    if err != nil {
+        return fmt.Errorf("Current user '%s' does not exist. Error: %v", user.Name, err)
+    }
+
+    feed, err := s.db.GetFeed(context.Background(), url)
+    if err != nil {
+        return fmt.Errorf("Feed with %s url doesn't exist. Error: %v", url, err)
+    }
+
+    feedFollow := database.CreateFeedFollowParams{
+        ID: int32(uuid.New().ID()),
+        CreatedAt: time.Now(),
+        UpdatedAt: time.Now(),
+        UserID: user.ID,
+        FeedID: feed.ID,
+    }
+
+    if _, err = s.db.CreateFeedFollow(context.Background(), feedFollow); err != nil {
+        if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == pqerror.Code(duplicateErrorCode) {
+            return fmt.Errorf("User %s is already following %s", user.Name, feed.Name)
+        }
+        return fmt.Errorf("Error while creating new feed entry: %v", err)
+    }
+
+    fmt.Printf("User %s successfuly followed feed %s", user.Name, feed.Name)
+    return nil
+}
+
+func handlerFollowing(s *state, cmd command) error {
+    username := s.cfg.Current_user_name
+
+    feeds, err := s.db.GetFeedFollowsForUser(context.Background(), username)
+    if err != nil {
+        return fmt.Errorf("Error while quering feed followers. Error: %v", err)
+    }
+
+    for _, feed := range feeds {
+        fmt.Printf("%s %s\n", feed.FeedName, feed.UserName)
     }
 
     return nil
