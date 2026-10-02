@@ -155,14 +155,9 @@ func handlerAggegator(s *state, cmd command) error {
     return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
     if len(cmd.args) != 2 {
         return fmt.Errorf("addfeed expects name and url argument:  aggfeed <name> <url>")
-    }
-
-    CurrentUser, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
-    if err != nil {
-        return fmt.Errorf("Error while fetching current user data: %v", err)
     }
 
     Name := cmd.args[0]
@@ -174,10 +169,10 @@ func handlerAddFeed(s *state, cmd command) error {
         UpdatedAt: time.Now(),
         Name: Name,
         Url: URL,
-        UserID: CurrentUser.ID,
+        UserID: user.ID,
     }
 
-    _, err = s.db.CreateFeed(context.Background(), FeedArgs)
+    _, err := s.db.CreateFeed(context.Background(), FeedArgs)
     if err != nil {
         if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == pqerror.Code(duplicateErrorCode) {
             return fmt.Errorf("Feed %s with %s URL already exists. Error: %v", Name, URL, err)
@@ -186,7 +181,7 @@ func handlerAddFeed(s *state, cmd command) error {
     }
 
     fmt.Printf("Feed %s, %s successfully created.\n", Name, URL)
-    return handlerFollow(s, command{name: "follow", args: []string{URL}})
+    return middlewareLoggedIn(handlerFollow)(s, command{name: "follow", args: []string{URL}})
 }
 
 func handlerFeeds(s *state, cmd command) error {
@@ -206,17 +201,12 @@ func handlerFeeds(s *state, cmd command) error {
     return nil
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
     if len(cmd.args) != 1 {
         return fmt.Errorf("commands explects url argument: follow <url>")
     }
 
     url := cmd.args[0]
-
-    user, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
-    if err != nil {
-        return fmt.Errorf("Current user '%s' does not exist. Error: %v", user.Name, err)
-    }
 
     feed, err := s.db.GetFeed(context.Background(), url)
     if err != nil {
@@ -242,10 +232,8 @@ func handlerFollow(s *state, cmd command) error {
     return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-    username := s.cfg.Current_user_name
-
-    feeds, err := s.db.GetFeedFollowsForUser(context.Background(), username)
+func handlerFollowing(s *state, cmd command, user database.User) error {
+    feeds, err := s.db.GetFeedFollowsForUser(context.Background(), user.Name)
     if err != nil {
         return fmt.Errorf("Error while quering feed followers. Error: %v", err)
     }
@@ -255,6 +243,17 @@ func handlerFollowing(s *state, cmd command) error {
     }
 
     return nil
+}
+
+func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
+    return func(s *state, cmd command) error {
+        user, err := s.db.GetUser(context.Background(), s.cfg.Current_user_name)
+        if err != nil {
+            return fmt.Errorf("Error: ")
+        }
+
+        return handler(s, cmd, user)
+    }
 }
 
 func isAlpha(s string) bool {
