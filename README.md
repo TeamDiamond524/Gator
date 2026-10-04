@@ -10,7 +10,8 @@ This program expects you to already have [PostgresSQL](https://www.postgresql.or
 
 Firstly, we have to install the package. You can do that in terminal like so: 
 ```bash
-go install github.com/TeamDiamond524/Gator```
+go install github.com/TeamDiamond524/Gator
+```
 
 ## Setup
 After the installation we need to set up database. Using PostgreSQL create database named `gator`.
