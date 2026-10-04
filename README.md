@@ -4,7 +4,7 @@ This is guided project from (boot.dev)[https://www.boot.dev/lessons/14b7179b-ced
 The goap of this project is to teach myself how to use postgres database and cli commands.
 
 ## Prerequisites
-This program expects you to already have (PostgresSQL)[https://www.postgresql.org/download/] and (goose)[https://github.com/pressly/goose] migration tool.
+This program expects you to already have [PostgresSQL](https://www.postgresql.org/download/) and [goose](https://github.com/pressly/goose) migration tool.
 
 ## Installation
 
@@ -25,7 +25,7 @@ We will aslo set up the config file `~/.gatorconfig.json`:
 }
 ```
 
-After we will use database migration tool (`goose`)[https://github.com/pressly/goose].
+After we will use database migration tool [`goose`](https://github.com/pressly/goose).
 First clone the repository:
 ```git
 git clone github.com/TeamDiamond524/Gator
