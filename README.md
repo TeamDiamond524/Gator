@@ -1,6 +1,6 @@
 # GATOR
 
-This is guided project from (boot.dev)[https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242].
+This is guided project from [boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242).
 The goap of this project is to teach myself how to use postgres database and cli commands.
 
 ## Prerequisites
