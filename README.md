@@ -1,10 +1,10 @@
 # GATOR
 
 This is guided project from [boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242).
-The goap of this project is to teach myself how to use postgres database and cli commands.
+The goal of this project is to teach myself how to use postgres database and cli commands.
 
 ## Prerequisites
-This program expects you to already have [PostgresSQL](https://www.postgresql.org/download/) and [goose](https://github.com/pressly/goose) migration tool.
+This program expects you to already have [PostgresSQL](https://www.postgresql.org/download/) and [goose](https://github.com/pressly/goose) migration tool installed.
 
 ## Installation
 
